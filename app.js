@@ -38,7 +38,8 @@
         seen[item.id] = true;
         return true;
       }).map(function (item) {
-        return { id: item.id, text: item.text, done: item.done };
+        // Same normalisation as the add path, and unknown fields are dropped.
+        return { id: item.id, text: item.text.trim(), done: item.done };
       });
     } catch (e) {
       return [];
