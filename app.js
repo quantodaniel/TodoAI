@@ -68,7 +68,7 @@
     items.forEach(function (todo) {
       var li = document.createElement('li');
       li.dataset.id = todo.id;
-      if (todo.done) li.className = 'done';
+      li.className = todo.done ? 'item done' : 'item';
 
       var box = document.createElement('input');
       box.type = 'checkbox';
@@ -125,7 +125,7 @@
     var btn = e.target.closest('button[data-filter]');
     if (!btn) return;
     filter = btn.dataset.filter;
-    document.querySelectorAll('.filters button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.filter').forEach(function (b) { b.classList.toggle('active', b === btn); });
     render();
   });
 
