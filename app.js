@@ -38,6 +38,10 @@
     }
   }
 
+  function uid() {
+    return String(Date.now()) + Math.random().toString(16).slice(2);
+  }
+
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(todos));
@@ -95,7 +99,7 @@
     e.preventDefault();
     var text = input.value.trim();
     if (!text) return;
-    todos.push({ id: String(Date.now()) + Math.random().toString(16).slice(2), text: text, done: false });
+    todos = todos.concat([{ id: uid(), text: text, done: false }]);
     input.value = '';
     save();
     render();
