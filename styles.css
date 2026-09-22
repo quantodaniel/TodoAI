@@ -46,6 +46,7 @@ body {
 
 h1 {
   font-size: 2rem;
+  letter-spacing: -0.02em;
   margin: 0 0 24px;
 }
 
@@ -60,6 +61,7 @@ button {
   cursor: pointer;
   font-size: .95rem;
   color: var(--fg);
+  transition: border-color .15s ease, background-color .15s ease, color .15s ease;
 }
 
 button:hover { border-color: var(--accent); }
@@ -107,7 +109,10 @@ button:focus-visible,
   font: inherit;
   color: inherit;
   background: var(--card);
+  transition: border-color .15s ease;
 }
+
+.field:hover { border-color: var(--muted); }
 
 .primary {
   background: var(--accent);
@@ -185,6 +190,7 @@ button:focus-visible,
   font: inherit;
   color: inherit;
   background: var(--card);
+  transition: border-color .15s ease;
 }
 
 .item.done .text {
@@ -207,12 +213,15 @@ button:focus-visible,
   line-height: 1;
 }
 
+.icon:hover { background: var(--hover); }
+
 .move:hover { color: var(--accent); }
 
 .del:hover { color: var(--danger); }
 
 .icon:disabled {
   color: var(--border);
+  background: none;
   cursor: default;
 }
 
@@ -235,6 +244,10 @@ button:focus-visible,
   font-size: .9rem;
 }
 
+/* Digits keep their width so the count does not jitter as it changes */
+
+.count { font-variant-numeric: tabular-nums; }
+
 .filters {
   display: flex;
   gap: 4px;
@@ -247,4 +260,12 @@ button:focus-visible,
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .field,
+  .edit {
+    transition: none;
+  }
 }
