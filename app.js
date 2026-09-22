@@ -70,10 +70,15 @@
       li.dataset.id = todo.id;
       li.className = todo.done ? 'item done' : 'item';
 
+      var toggle = document.createElement('label');
+      toggle.className = 'toggle';
+
       var box = document.createElement('input');
       box.type = 'checkbox';
+      box.className = 'check';
       box.checked = todo.done;
       box.setAttribute('aria-label', 'Toggle ' + todo.text);
+      toggle.appendChild(box);
 
       var span = document.createElement('span');
       span.className = 'text';
@@ -81,11 +86,11 @@
 
       var del = document.createElement('button');
       del.type = 'button';
-      del.className = 'del';
+      del.className = 'icon del';
       del.textContent = '×';
       del.setAttribute('aria-label', 'Delete ' + todo.text);
 
-      li.appendChild(box);
+      li.appendChild(toggle);
       li.appendChild(span);
       li.appendChild(del);
       list.appendChild(li);
@@ -110,7 +115,7 @@
     if (!li) return;
     var id = li.dataset.id;
 
-    if (e.target.matches('input[type=checkbox]')) {
+    if (e.target.matches('.check')) {
       todos = todos.map(function (t) { return t.id === id ? { id: t.id, text: t.text, done: !t.done } : t; });
       save();
       render();
