@@ -16,6 +16,9 @@ python3 -m http.server 8000
 - Filter by All / Active / Done
 - Clear completed
 - State survives reloads via `localStorage` (key: `todoai.todos`)
+- Stored data is validated on load: anything that is not an array of
+  `{ id: string, text: string, done: boolean }` is discarded (duplicate ids
+  and unknown fields too), so a corrupted or foreign value never breaks the app
 
 ## Rules
 

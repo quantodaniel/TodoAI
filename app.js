@@ -10,10 +10,29 @@
   var list = document.getElementById('todo-list');
   var count = document.getElementById('count');
 
+  function isTodo(value) {
+    return value !== null && typeof value === 'object' &&
+      typeof value.id === 'string' && value.id !== '' &&
+      typeof value.text === 'string' && value.text.trim() !== '' &&
+      typeof value.done === 'boolean';
+  }
+
+  // Trust nothing from storage: it may be missing, corrupted, or written by
+  // another origin's script. Anything that is not a well-formed todo is dropped.
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : [];
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      var seen = Object.create(null);
+      return parsed.filter(function (item) {
+        if (!isTodo(item) || seen[item.id]) return false;
+        seen[item.id] = true;
+        return true;
+      }).map(function (item) {
+        return { id: item.id, text: item.text, done: item.done };
+      });
     } catch (e) {
       return [];
     }
