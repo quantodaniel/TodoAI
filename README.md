@@ -17,6 +17,11 @@ python3 -m http.server 8000
 - Clear completed
 - State survives reloads via `localStorage` (key: `todoai.todos`)
 
+## Rules
+
+Agent-facing coding rules live in [.claude/rules/](.claude/rules/) and are indexed from [CLAUDE.md](CLAUDE.md):
+no-dependencies, javascript, dom-safety, css, accessibility, git.
+
 ## Structure
 
 | File | Purpose |
@@ -24,3 +29,5 @@ python3 -m http.server 8000
 | `index.html` | Markup |
 | `styles.css` | Styles |
 | `app.js` | State, persistence and rendering |
+| `CLAUDE.md` | Rule index for agents |
+| `.claude/rules/` | Individual rule files |
