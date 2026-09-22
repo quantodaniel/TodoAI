@@ -83,14 +83,15 @@
     setTimeout(function () { announcer.textContent = message; }, 50);
   }
 
-  // Record where focus should land after the next render: `control` is the
-  // class of the target inside the item, `index` its place in the visible
-  // list, used as a fallback when the item itself is gone. Unless `always`
-  // is set this only applies while focus is inside the list, so a mouse
-  // click elsewhere (or a blur) never has focus pulled back.
-  function focusAfterRender(id, control, always) {
+  // Record where focus should land after the next render: `controls` are
+  // class names of targets inside the item, tried in order (the item text is
+  // the final fallback), `index` its place in the visible list, used when
+  // the item itself is gone. Unless `always` is set this only applies while
+  // focus is inside the list, so a mouse click elsewhere (or a blur) never
+  // has focus pulled back.
+  function focusAfterRender(id, controls, always) {
     if (!always && !list.contains(document.activeElement)) return;
-    pendingFocus = { id: id, control: control, index: visibleIndex(id) };
+    pendingFocus = { id: id, controls: [].concat(controls, 'text'), index: visibleIndex(id) };
   }
 
   function itemNode(id) {
@@ -116,14 +117,30 @@
       li = nodes[Math.min(target.index, nodes.length - 1)];
     }
 
-    var el = li.querySelector('.' + target.control);
-    if (!el || el.disabled) el = li.querySelector('.text');
+    var el = null;
+    target.controls.some(function (name) {
+      var candidate = li.querySelector('.' + name);
+      if (!candidate || candidate.disabled) return false;
+      el = candidate;
+      return true;
+    });
     if (!el) return;
     el.focus();
     if (el.matches('.edit')) el.setSelectionRange(el.value.length, el.value.length);
   }
 
-  function renderItem(todo) {
+  function iconButton(className, glyph, label) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon ' + className;
+    btn.textContent = glyph;
+    btn.setAttribute('aria-label', label);
+    return btn;
+  }
+
+  // `position` and `total` locate the todo in the visible list so the move
+  // buttons can be disabled at the edges.
+  function renderItem(todo, position, total) {
     var li = document.createElement('li');
     li.dataset.id = todo.id;
     li.className = todo.done ? 'item done' : 'item';
@@ -157,12 +174,15 @@
       li.appendChild(text);
     }
 
-    var del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'icon del';
-    del.textContent = '×';
-    del.setAttribute('aria-label', 'Delete ' + todo.text);
-    li.appendChild(del);
+    var up = iconButton('move up', '\u2191', 'Move ' + todo.text + ' up');
+    up.disabled = position === 0;
+    li.appendChild(up);
+
+    var down = iconButton('move down', '\u2193', 'Move ' + todo.text + ' down');
+    down.disabled = position === total - 1;
+    li.appendChild(down);
+
+    li.appendChild(iconButton('del', '\u00D7', 'Delete ' + todo.text));
 
     return li;
   }
@@ -179,8 +199,8 @@
       frag.appendChild(empty);
     }
 
-    items.forEach(function (todo) {
-      frag.appendChild(renderItem(todo));
+    items.forEach(function (todo, i) {
+      frag.appendChild(renderItem(todo, i, items.length));
     });
 
     list.appendChild(frag);
@@ -192,6 +212,27 @@
     if (count.textContent !== summary) count.textContent = summary;
 
     restoreFocus();
+  }
+
+  // Swap the todo with its nearest visible neighbour in `direction` (-1 up,
+  // +1 down). Hidden items in between keep their place, so reordering under
+  // a filter does what the user sees.
+  function move(id, direction) {
+    var todo = byId(id);
+    if (!todo) return;
+    var items = visible();
+    var position = visibleIndex(id);
+    var neighbour = items[position + direction];
+    if (!neighbour) return;
+
+    var without = todos.filter(function (t) { return t.id !== id; });
+    var at = todos.indexOf(neighbour);
+    focusAfterRender(id, direction < 0 ? ['up', 'down'] : ['down', 'up']);
+    todos = without.slice(0, at).concat([todo], without.slice(at));
+    save();
+    render();
+    announce('Moved \u201C' + todo.text + '\u201D ' + (direction < 0 ? 'up' : 'down') +
+      ' to ' + (position + direction + 1) + ' of ' + items.length);
   }
 
   function startEdit(id) {
@@ -275,6 +316,10 @@
       render();
     } else if (e.target.matches('.text')) {
       startEdit(id);
+    } else if (e.target.matches('.up')) {
+      move(id, -1);
+    } else if (e.target.matches('.down')) {
+      move(id, 1);
     } else if (e.target.matches('.del')) {
       focusAfterRender(id, 'del');
       todos = todos.filter(function (t) { return t.id !== id; });

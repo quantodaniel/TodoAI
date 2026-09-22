@@ -188,7 +188,14 @@ button:focus-visible,
   line-height: 1;
 }
 
+.move:hover { color: var(--accent); }
+
 .del:hover { color: var(--danger); }
+
+.icon:disabled {
+  color: var(--border);
+  cursor: default;
+}
 
 .empty {
   padding: 24px;
