@@ -5,6 +5,9 @@
   var todos = load();
   var filter = 'all';
 
+  // Id of the todo whose text is being edited inline, or null.
+  var editingId = null;
+
   var form = document.getElementById('todo-form');
   var input = document.getElementById('todo-input');
   var list = document.getElementById('todo-list');
@@ -82,11 +85,11 @@
 
   // Record where focus should land after the next render: `control` is the
   // class of the target inside the item, `index` its place in the visible
-  // list, used as a fallback when the item itself is gone. Only applies when
-  // focus is already inside the list, so a mouse click elsewhere (or a blur)
-  // never has focus pulled back.
-  function focusAfterRender(id, control) {
-    if (!list.contains(document.activeElement)) return;
+  // list, used as a fallback when the item itself is gone. Unless `always`
+  // is set this only applies while focus is inside the list, so a mouse
+  // click elsewhere (or a blur) never has focus pulled back.
+  function focusAfterRender(id, control, always) {
+    if (!always && !list.contains(document.activeElement)) return;
     pendingFocus = { id: id, control: control, index: visibleIndex(id) };
   }
 
@@ -115,7 +118,53 @@
 
     var el = li.querySelector('.' + target.control);
     if (!el || el.disabled) el = li.querySelector('.text');
-    if (el) el.focus();
+    if (!el) return;
+    el.focus();
+    if (el.matches('.edit')) el.setSelectionRange(el.value.length, el.value.length);
+  }
+
+  function renderItem(todo) {
+    var li = document.createElement('li');
+    li.dataset.id = todo.id;
+    li.className = todo.done ? 'item done' : 'item';
+
+    var toggle = document.createElement('label');
+    toggle.className = 'toggle';
+
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'check';
+    box.checked = todo.done;
+    box.setAttribute('aria-label', 'Mark ' + todo.text + ' as done');
+    toggle.appendChild(box);
+    li.appendChild(toggle);
+
+    if (todo.id === editingId) {
+      var field = document.createElement('input');
+      field.type = 'text';
+      field.className = 'edit';
+      field.value = todo.text;
+      field.setAttribute('aria-label', 'Edit ' + todo.text);
+      li.appendChild(field);
+    } else {
+      // The text is itself the edit control, so Enter or a click on it opens
+      // the field; the aria-label keeps the visible text inside the name.
+      var text = document.createElement('button');
+      text.type = 'button';
+      text.className = 'text';
+      text.textContent = todo.text;
+      text.setAttribute('aria-label', 'Edit ' + todo.text);
+      li.appendChild(text);
+    }
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'icon del';
+    del.textContent = '×';
+    del.setAttribute('aria-label', 'Delete ' + todo.text);
+    li.appendChild(del);
+
+    return li;
   }
 
   function render() {
@@ -131,34 +180,7 @@
     }
 
     items.forEach(function (todo) {
-      var li = document.createElement('li');
-      li.dataset.id = todo.id;
-      li.className = todo.done ? 'item done' : 'item';
-
-      var toggle = document.createElement('label');
-      toggle.className = 'toggle';
-
-      var box = document.createElement('input');
-      box.type = 'checkbox';
-      box.className = 'check';
-      box.checked = todo.done;
-      box.setAttribute('aria-label', 'Toggle ' + todo.text);
-      toggle.appendChild(box);
-
-      var span = document.createElement('span');
-      span.className = 'text';
-      span.textContent = todo.text;
-
-      var del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'icon del';
-      del.textContent = '×';
-      del.setAttribute('aria-label', 'Delete ' + todo.text);
-
-      li.appendChild(toggle);
-      li.appendChild(span);
-      li.appendChild(del);
-      frag.appendChild(li);
+      frag.appendChild(renderItem(todo));
     });
 
     list.appendChild(frag);
@@ -172,8 +194,65 @@
     restoreFocus();
   }
 
+  function startEdit(id) {
+    editingId = id;
+    focusAfterRender(id, 'edit', true);
+    render();
+  }
+
+  // Ends the edit for `id` with `value`: unchanged text just closes the
+  // field, empty text deletes the todo, anything else renames it. A second
+  // call for the same edit (Enter followed by the blur it causes) is a no-op.
+  function commitEdit(id, value) {
+    if (editingId !== id) return;
+    editingId = null;
+
+    var todo = byId(id);
+    if (!todo) {
+      render();
+      return;
+    }
+
+    focusAfterRender(id, 'text');
+    var text = value.trim();
+
+    if (!text) {
+      todos = todos.filter(function (t) { return t.id !== id; });
+      save();
+      render();
+      announce('Deleted “' + todo.text + '”');
+      return;
+    }
+
+    if (text === todo.text) {
+      render();
+      return;
+    }
+
+    todos = todos.map(function (t) { return t.id === id ? { id: t.id, text: text, done: t.done } : t; });
+    save();
+    render();
+  }
+
+  function cancelEdit(id) {
+    if (editingId !== id) return;
+    editingId = null;
+    focusAfterRender(id, 'text');
+    render();
+  }
+
+  // Commit an edit that is still open when another control acts on the
+  // list, e.g. a filter click in browsers that do not move focus to buttons.
+  function flushEdit() {
+    if (editingId === null) return;
+    var field = list.querySelector('.edit');
+    if (field) commitEdit(editingId, field.value);
+    else editingId = null;
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    flushEdit();
     var text = input.value.trim();
     if (!text) return;
     todos = todos.concat([{ id: uid(), text: text, done: false }]);
@@ -194,6 +273,8 @@
       todos = todos.map(function (t) { return t.id === id ? { id: t.id, text: t.text, done: !t.done } : t; });
       save();
       render();
+    } else if (e.target.matches('.text')) {
+      startEdit(id);
     } else if (e.target.matches('.del')) {
       focusAfterRender(id, 'del');
       todos = todos.filter(function (t) { return t.id !== id; });
@@ -203,9 +284,31 @@
     }
   });
 
+  list.addEventListener('keydown', function (e) {
+    if (!e.target.matches('.edit') || e.isComposing) return;
+    var li = e.target.closest('li[data-id]');
+    if (!li) return;
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitEdit(li.dataset.id, e.target.value);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelEdit(li.dataset.id);
+    }
+  });
+
+  list.addEventListener('focusout', function (e) {
+    if (!e.target.matches('.edit')) return;
+    var li = e.target.closest('li[data-id]');
+    if (!li) return;
+    commitEdit(li.dataset.id, e.target.value);
+  });
+
   document.querySelector('.filters').addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-filter]');
     if (!btn) return;
+    flushEdit();
     filter = btn.dataset.filter;
     document.querySelectorAll('.filter').forEach(function (b) {
       var selected = b === btn;
@@ -216,6 +319,7 @@
   });
 
   document.getElementById('clear-done').addEventListener('click', function () {
+    flushEdit();
     var done = todos.filter(function (t) { return t.done; }).length;
     if (!done) {
       announce('No done items to clear');
