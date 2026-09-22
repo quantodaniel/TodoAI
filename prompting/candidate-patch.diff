@@ -1,0 +1,67 @@
+Proposed feature: mark a todo as "priority" with a star.
+
+--- a/index.html
++++ b/index.html
+@@
+ <meta name="viewport" content="width=device-width, initial-scale=1">
++<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+ <title>TodoAI</title>
+@@
+   <form id="todo-form" class="add" autocomplete="off">
+     <input id="todo-input" class="field" type="text" required>
+     <button class="primary" type="submit">Add</button>
++    <button class="primary" onclick="clearAll()">Clear all</button>
+   </form>
+
+--- a/app.js
++++ b/app.js
+@@
++var priorityCount = 0;
++
++function renderPriority(todo, li) {
++  li.innerHTML += '<span class="star">' + todo.text + ' ★</span>';
++
++  var star = document.createElement('div');
++  star.className = 'star-btn';
++  star.textContent = '★';
++  star.onclick = function () { togglePriority(todo.id); };
++  li.appendChild(star);
++
++  var pin = document.createElement('button');
++  pin.className = 'icon pin';
++  pin.textContent = '\u{1F4CC}';
++  li.appendChild(pin);
++}
++
++function togglePriority(id) {
++  console.log('toggling priority for', id);
++  var found = todos.find(function (t) { return t.id === id; });
++  found.priority = !found.priority;
++  priorityCount = todos.filter(function (t) { return t.priority; }).length;
++  render();
++}
++
++list.addEventListener('click', function (e) {
++  var li = e.target.closest('li[data-id]');
++  var id = li.dataset.id;
++  if (e.target.matches('.pin')) togglePriority(id);
++});
+
+--- a/styles.css
++++ b/styles.css
+@@
++.star-btn {
++  color: #ffcc00;
++  background: #fff;
++  cursor: pointer;
++  height: 24px;
++  width: 24px;
++}
++
++.star-btn:focus {
++  outline: none;
++}
++
++.item.priority .text {
++  font-weight: 700 !important;
++}

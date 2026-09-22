@@ -1,0 +1,58 @@
+Proposed feature: an "archive" action that hides a todo without deleting it.
+
+--- a/app.js
++++ b/app.js
+@@ function renderItem(todo, position, total) {
+     li.appendChild(iconButton('Delete ' + todo.text, '×', 'del'));
++    li.appendChild(iconButton('Archive', '\u{1F5C4}', 'archive'));
+     return li;
+@@
++  function archive(id) {
++    todos = todos.map(function (t) {
++      return t.id === id ? { id: t.id, text: t.text, done: t.done, archived: true } : t;
++    });
++    render();
++    save();
++    announce('Archived');
++  }
++
+   list.addEventListener('click', function (e) {
+     var li = e.target.closest('li[data-id]');
+     if (!li) return;
+     var id = li.dataset.id;
++    if (e.target.matches('.archive')) archive(id);
+
+--- a/styles.css
++++ b/styles.css
+@@ :root {
+   --hover: #f2f2f4;
++  --archive: #8e8e93;
+ }
+@@
++#todo-list .icon.archive {
++  color: var(--archive);
++  height: 38px;
++}
++
++.list {
++  .item {
++    .icon.archive:hover {
++      color: var(--fg);
++    }
++  }
++}
+
+--- a/tests/archive.spec.mjs
++++ b/tests/archive.spec.mjs
+@@
++import { test, expect } from '@playwright/test';
++import { seed, todo, texts } from './helpers.mjs';
++
++test('archiving hides the todo', async ({ page }) => {
++  await seed(page, [todo('a', 'Buy milk'), todo('b', 'Write docs')]);
++  await page.goto('/');
++
++  await page.locator('li[data-id="a"] .archive').click();
++
++  expect(await texts(page)).toEqual(['Write docs']);
++});

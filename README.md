@@ -75,6 +75,8 @@ see [MCP-COMPARISON.md](MCP-COMPARISON.md) for the write-up, and
 | `.mcp.json` | MCP server config (Playwright, Chrome DevTools) |
 | `MCP-COMPARISON.md` | MCP server evaluation |
 | `PLAN-MODE-WRITEUP.md` | Plan-mode agent write-up |
+| `PROMPTING-DEEP-DIVE.md` | Prompt-technique experiment |
+| `prompting/` | Experiment fixtures, prompts and scores |
 | `tools/mcp-probe.mjs` | Minimal MCP stdio client |
 | `tests/` | Playwright regression suite |
 | `playwright.config.mjs` | Test runner config |
