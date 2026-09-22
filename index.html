@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TodoAI</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <h1>TodoAI</h1>
+    <form id="todo-form" autocomplete="off">
+      <input id="todo-input" type="text" placeholder="What needs to be done?" required>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <footer class="bar">
+      <span id="count">0 items left</span>
+      <div class="filters">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="active">Active</button>
+        <button data-filter="done">Done</button>
+      </div>
+      <button id="clear-done" type="button">Clear done</button>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
