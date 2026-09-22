@@ -45,6 +45,12 @@ python3 -m http.server 8000
 Agent-facing coding rules live in [.claude/rules/](.claude/rules/) and are indexed from [CLAUDE.md](CLAUDE.md):
 no-dependencies, javascript, dom-safety, css, accessibility, git.
 
+## MCP servers
+
+Two MCP servers are configured in [.mcp.json](.mcp.json) and were tested against this app —
+see [MCP-COMPARISON.md](MCP-COMPARISON.md) for the write-up, and
+[tools/mcp-probe.mjs](tools/mcp-probe.mjs) for the stdio client used to drive them.
+
 ## Structure
 
 | File | Purpose |
@@ -54,3 +60,6 @@ no-dependencies, javascript, dom-safety, css, accessibility, git.
 | `app.js` | State, persistence and rendering |
 | `CLAUDE.md` | Rule index for agents |
 | `.claude/rules/` | Individual rule files |
+| `.mcp.json` | MCP server config (Playwright, Chrome DevTools) |
+| `MCP-COMPARISON.md` | MCP server evaluation |
+| `tools/mcp-probe.mjs` | Minimal MCP stdio client |
