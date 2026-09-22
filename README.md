@@ -21,6 +21,8 @@ python3 -m http.server 8000
   nearest visible neighbour and hidden items keep their place
 - Filter by All / Active / Done
 - Clear completed
+- Follows the system light/dark preference (`prefers-color-scheme`); the
+  dark theme only redefines the `:root` colour tokens
 - Screen reader friendly: every control is labelled, the remaining count
   is a polite live region, the filter buttons expose their selected
   state with `aria-pressed`, and deleting, moving or clearing items is
