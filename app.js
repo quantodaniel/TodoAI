@@ -96,8 +96,11 @@
       list.appendChild(li);
     });
 
+    // Only touch the live region when the text changes, so screen readers
+    // are not told about a count that did not move.
     var left = todos.filter(function (t) { return !t.done; }).length;
-    count.textContent = left + (left === 1 ? ' item left' : ' items left');
+    var summary = left + (left === 1 ? ' item left' : ' items left');
+    if (count.textContent !== summary) count.textContent = summary;
   }
 
   form.addEventListener('submit', function (e) {
@@ -130,7 +133,11 @@
     var btn = e.target.closest('button[data-filter]');
     if (!btn) return;
     filter = btn.dataset.filter;
-    document.querySelectorAll('.filter').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    document.querySelectorAll('.filter').forEach(function (b) {
+      var selected = b === btn;
+      b.classList.toggle('active', selected);
+      b.setAttribute('aria-pressed', String(selected));
+    });
     render();
   });
 

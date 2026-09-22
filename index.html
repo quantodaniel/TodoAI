@@ -10,16 +10,17 @@
   <main class="app">
     <h1>TodoAI</h1>
     <form id="todo-form" class="add" autocomplete="off">
+      <label for="todo-input" class="sr-only">New todo</label>
       <input id="todo-input" class="field" type="text" placeholder="What needs to be done?" required>
       <button type="submit" class="primary">Add</button>
     </form>
-    <ul id="todo-list" class="list"></ul>
+    <ul id="todo-list" class="list" aria-label="Todos"></ul>
     <footer class="bar">
-      <span id="count" class="count">0 items left</span>
-      <div class="filters">
-        <button data-filter="all" class="filter active">All</button>
-        <button data-filter="active" class="filter">Active</button>
-        <button data-filter="done" class="filter">Done</button>
+      <span id="count" class="count" role="status">0 items left</span>
+      <div class="filters" role="group" aria-label="Filter todos">
+        <button type="button" data-filter="all" class="filter active" aria-pressed="true">All</button>
+        <button type="button" data-filter="active" class="filter" aria-pressed="false">Active</button>
+        <button type="button" data-filter="done" class="filter" aria-pressed="false">Done</button>
       </div>
       <button id="clear-done" type="button" class="clear">Clear done</button>
     </footer>

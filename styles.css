@@ -187,7 +187,11 @@ button:focus-visible,
   gap: 4px;
 }
 
+/* Selected filter is filled, not just recoloured, so the state survives
+   grayscale; aria-pressed carries it to assistive tech. */
+
 .filter.active {
+  background: var(--accent);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--on-accent);
 }
