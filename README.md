@@ -45,6 +45,18 @@ python3 -m http.server 8000
 Agent-facing coding rules live in [.claude/rules/](.claude/rules/) and are indexed from [CLAUDE.md](CLAUDE.md):
 no-dependencies, javascript, dom-safety, css, accessibility, git.
 
+## Testing
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+62 Playwright tests in `tests/`, covering every behaviour in the list below plus storage
+validation, focus restoration after re-render, and XSS safety. The suite starts its own static
+server on port 4173.
+
 ## MCP servers
 
 Two MCP servers are configured in [.mcp.json](.mcp.json) and were tested against this app —
@@ -63,3 +75,5 @@ see [MCP-COMPARISON.md](MCP-COMPARISON.md) for the write-up, and
 | `.mcp.json` | MCP server config (Playwright, Chrome DevTools) |
 | `MCP-COMPARISON.md` | MCP server evaluation |
 | `tools/mcp-probe.mjs` | Minimal MCP stdio client |
+| `tests/` | Playwright regression suite |
+| `playwright.config.mjs` | Test runner config |
